@@ -72,4 +72,4 @@ Each scenario simulates realistic work situations requiring reverse engineering,
 
 ## License
 
-This is an educational project. Feel free to use it for learning purposes.
+This is an educational project—feel free to use it for learning and teaching. The project is released under the MIT License; see `LICENSE.txt` for the full text.
