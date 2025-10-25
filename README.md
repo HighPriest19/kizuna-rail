@@ -42,16 +42,37 @@ Greenfield tutorials teach you syntax. Brownfield projects teach you engineering
 - Typos in documentation or scenario descriptions
 - Ideas for new scenarios or challenges
 
-Please open an issue! Contributions to improve the educational value are welcome.
+Please open an issue or submit a PR! Contributions to improve the educational value are welcome.
 
 ## Getting Started
 
-1. Clone or fork this repository
-2. Install dependencies: `pnpm install`
-3. Start the development server: `pnpm run dev`
-4. Visit `/scenarios` to see available development challenges
+### For Students and Self-Learners
+
+This repository is set up as a **GitHub template**. Use the template feature to create your own independent copy where you can complete the challenges.
+
+1. Click the **Use this template** button at the top of this repository
+2. Select **Create a new repository**
+3. Give your repository a name (`kizuna-rail`) and create it under your GitHub account
+4. Clone your new repository to your local machine:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
+   cd YOUR-REPO-NAME
+   ```
+5. Install dependencies: `pnpm install`
+6. Start the development server: `pnpm run dev`
+7. Visit `/scenarios` to see available development challenges
 
 Each scenario simulates realistic work situations requiring reverse engineering, refactoring, debugging, or feature extension.
+
+### For Contributors
+
+If you want to contribute improvements to the challenge scenarios, documentation, or educational content itself:
+
+1. **Fork** this repository (not "Use this template")
+2. Create a feature branch for your changes
+3. Submit a pull request with your improvements
+
+Forking maintains the connection to the original repository and allows you to contribute back. Using the template creates an independent copy for your own work.
 
 ## Technology Stack
 
