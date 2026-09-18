@@ -1,10 +1,14 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import globalMiddleware from './src/middleware/global.js';
 import Path from 'path';
-import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import { initializeDatabase } from './src/models/db-in-file.js';
+
+// Import route modules
+import apiRoutes from './src/routes/api-routes.js';
+import ejsRoutes from './src/routes/ejs-routes.js';
 
 /**
  * Declare Important Variables
@@ -14,11 +18,23 @@ const __dirname = Path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
 const DATABASE_FILE = Path.join(__dirname, 'src/models/db-in-file.json');
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
 
 /**
  * Setup Express Server
  */
 const app = express();
+
+/**
+ * Connect to MongoDB Database
+ */
+if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log('Successfully connected to MongoDB'))
+        .catch((err) => console.error('MongoDB connection error:', err));
+} else {
+    console.error('Missing MONGODB_URI in .env file');
+}
 
 /**
  * Configure Express middleware
@@ -49,14 +65,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 /**
  * Global Middleware
  */
-
 app.use(globalMiddleware);
 
 /**
  * Routes
  */
-
-app.use('/', routes);
+app.use(apiRoutes);
+app.use(ejsRoutes);
 
 /**
  * Error Handling

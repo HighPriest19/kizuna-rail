@@ -89,8 +89,42 @@ const hookScenarioTasks = () => {
     });
 };
 
+const hydrateTripsList = async () => {
+    const tripGrid = document.getElementById('trips-grid');
+    if (!tripGrid) return;
+
+    try {
+        const response = await fetch('/api/trips');
+        if (!response.ok) {
+            throw new Error('Failed to fetch trips');
+        }
+
+        const trips = await response.json();
+
+        if (!trips || trips.length === 0) {
+            tripGrid.innerHTML = '<p>No trips found in the database.</p>';
+            return;
+        }
+
+        tripGrid.innerHTML = trips.map((trip) => `
+            <div class="card">
+                <h3>${trip.title}</h3>
+                <p>${trip.description}</p>
+                <ul>
+                    <li><strong>Duration:</strong> ${trip.duration}</li>
+                    <li><strong>Origin:</strong> ${trip.originStationId}</li>
+                    <li><strong>Destination:</strong> ${trip.destinationStationId}</li>
+                </ul>
+            </div>
+        `).join('');
+    } catch (error) {
+        tripGrid.innerHTML = '<p>Unable to load trips right now.</p>';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     hookRegionSorter();
     hookSeasonSorter();
     hookScenarioTasks();
+    hydrateTripsList();
 });

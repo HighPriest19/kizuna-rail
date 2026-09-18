@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Kizuna Rail</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <main class="container">
+    <h1>Featured Scenic Rail Trips</h1>
+    <p>Explore Japan's finest train journeys powered by real-time MongoDB data.</p>
+
+    <div id="trips-grid" class="trips-grid" aria-live="polite">
+      <p>Loading trips...</p>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+
+  <script type="module">
+    const tripsGrid = document.getElementById('trips-grid');
+
+    const renderTrips = (trips) => {
+      if (!tripsGrid) return;
+
+      if (!trips || trips.length === 0) {
+        tripsGrid.innerHTML = '<p>No trips found in the database.</p>';
+        return;
+      }
+
+      tripsGrid.innerHTML = trips.map((trip) => `
+        <div class="card">
+          <h3>${trip.title}</h3>
+          <p>${trip.description}</p>
+          <ul>
+            <li><strong>Duration:</strong> ${trip.duration}</li>
+            <li><strong>Origin:</strong> ${trip.originStationId}</li>
+            <li><strong>Destination:</strong> ${trip.destinationStationId}</li>
+          </ul>
+        </div>
+      `).join('');
+    };
+
+    fetch('/api/trips')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch trips');
+        }
+        return response.json();
+      })
+      .then((trips) => renderTrips(trips))
+      .catch(() => {
+        if (tripsGrid) {
+          tripsGrid.innerHTML = '<p>Unable to load trips right now.</p>';
+        }
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Kizuna Rail</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <main class="container">
+    <h1>Train Fleet</h1>
+    <p>Manage and inspect active train models across the network.</p>
+
+    <div class="trains-grid">
+      <% if (trains && trains.length > 0) { %>
+        <% trains.forEach(train => { %>
+          <div class="card">
+            <h3><%= train.name %></h3>
+            <p><strong>Type:</strong> <%= train.type %></p>
+            <ul>
+              <li><strong>Operator:</strong> <%= train.operator %></li>
+              <li><strong>Max Speed:</strong> <%= train.maxSpeedKmh %> km/h</li>
+              <li><strong>Capacity:</strong> <%= train.capacity %> passengers</li>
+              <li><strong>Power Source:</strong> <%= train.powerSource %></li>
+              <li><strong>Status:</strong> <%= train.status || 'Active' %></li>
+            </ul>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>No trains found in the database.</p>
+      <% } %>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

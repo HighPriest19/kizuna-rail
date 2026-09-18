@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Kizuna Rail</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <main class="container">
+    <div id="trip-details">
+      <p>Loading trip details...</p>
+    </div>
+
+    <section>
+      <h2>Available Schedules</h2>
+      <label for="schedule-month">Month:</label>
+      <select id="schedule-month">
+        <option value="">All months</option>
+        <option value="1">Jan</option>
+        <option value="2">Feb</option>
+        <option value="3">Mar</option>
+        <option value="4">Apr</option>
+        <option value="5">May</option>
+        <option value="6">Jun</option>
+        <option value="7">Jul</option>
+        <option value="8">Aug</option>
+        <option value="9">Sep</option>
+        <option value="10">Oct</option>
+        <option value="11">Nov</option>
+        <option value="12">Dec</option>
+      </select>
+      <div id="schedule-list">
+        <p>Loading schedules...</p>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+
+  <script type="module">
+    const tripId = window.location.pathname.split('/').pop();
+    const tripDetails = document.getElementById('trip-details');
+    const scheduleList = document.getElementById('schedule-list');
+    const monthSelect = document.getElementById('schedule-month');
+
+    const renderTrip = (trip) => {
+      if (!trip) {
+        tripDetails.innerHTML = '<p>Trip not found.</p>';
+        return;
+      }
+
+      tripDetails.innerHTML = `
+        <h1>${trip.title}</h1>
+        <p>${trip.description}</p>
+        <ul>
+          <li><strong>Origin:</strong> ${trip.originStationId}</li>
+          <li><strong>Destination:</strong> ${trip.destinationStationId}</li>
+          <li><strong>Duration:</strong> ${trip.duration}</li>
+        </ul>
+      `;
+    };
+
+    const renderSchedules = (schedules) => {
+      if (!schedules || schedules.length === 0) {
+        scheduleList.innerHTML = '<p>No schedules found for this month.</p>';
+        return;
+      }
+
+      scheduleList.innerHTML = schedules.map((schedule) => `
+        <div class="card">
+          <h3>${schedule.departureTime} - ${schedule.arrivalTime}</h3>
+          <p><strong>Days:</strong> ${schedule.daysOfWeek ? schedule.daysOfWeek.join(', ') : 'N/A'}</p>
+          <p><strong>Months:</strong> ${schedule.operatingMonths ? schedule.operatingMonths.join(', ') : 'All'}</p>
+        </div>
+      `).join('');
+    };
+
+    const loadSchedules = async (month = '') => {
+      try {
+        const url = month ? `/api/trips/${tripId}/schedules?month=${month}` : `/api/trips/${tripId}/schedules`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch schedules');
+        const schedules = await response.json();
+        renderSchedules(schedules);
+      } catch (error) {
+        scheduleList.innerHTML = '<p>Unable to load schedules right now.</p>';
+      }
+    };
+
+    fetch(`/api/trips/${tripId}`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to fetch trip');
+        return response.json();
+      })
+      .then((trip) => {
+        renderTrip(trip);
+        loadSchedules();
+      })
+      .catch(() => {
+        tripDetails.innerHTML = '<p>Unable to load trip details.</p>';
+      });
+
+    monthSelect.addEventListener('change', (event) => {
+      loadSchedules(event.target.value);
+    });
+  </script>
+</body>
+</html>
