@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import trainSchema from './schemas/trains.js';
 import tripSchema from './schemas/trips.js';
+import { seedRoles } from './roles.js';
 
 const rawTrainSchema = trainSchema.schema || trainSchema;
 const rawTripSchema = tripSchema.schema || tripSchema;
@@ -97,6 +98,8 @@ const seedDB = async () => {
     const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB for seeding...');
+    await seedRoles();
+    console.log('Seeded default roles.');
 
     await Train.deleteMany({});
     await Train.insertMany(sampleTrains);
