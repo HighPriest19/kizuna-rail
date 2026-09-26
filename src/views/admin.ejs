@@ -1,0 +1,9 @@
+<%- include('./partials/header', { title }) %>
+<section class="content">
+    <h1>Admin Dashboard</h1>
+    <p>Signed in as <%= user.username %>.</p>
+    <form action="/logout" method="post">
+        <button type="submit">Log out</button>
+    </form>
+</section>
+<%- include('./partials/footer') %>

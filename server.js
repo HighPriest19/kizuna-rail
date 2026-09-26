@@ -1,10 +1,15 @@
 import express from 'express';
+import session from 'express-session';
+import mongoose from 'mongoose';
+import { randomBytes } from 'crypto';
+import 'dotenv/config';
 import globalMiddleware from './src/middleware/global.js';
 import Path from 'path';
 import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import { initializeDatabase } from './src/models/db-in-file.js';
+import { seedRoles } from './src/models/roles.js';
 
 /**
  * Declare Important Variables
@@ -14,6 +19,24 @@ const __dirname = Path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
 const DATABASE_FILE = Path.join(__dirname, 'src/models/db-in-file.json');
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
+const SESSION_SECRET = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
+
+if (!process.env.SESSION_SECRET) {
+    console.warn('SESSION_SECRET is unset; sessions will be invalidated when the server restarts.');
+}
+
+if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+        .then(async () => {
+            console.log('Successfully connected to MongoDB');
+            await seedRoles();
+            console.log('Ensured default user roles exist');
+        })
+        .catch((err) => console.error('MongoDB connection error:', err));
+} else {
+    console.error('Missing MONGODB_URI in .env file; authentication requires MongoDB.');
+}
 
 /**
  * Setup Express Server
@@ -45,6 +68,18 @@ app.set('views', Path.join(__dirname, 'src/views'));
 // Parse JSON and URL-encoded request bodies (for processing POST data)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(session({
+    name: 'connect.sid',
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.SESSION_COOKIE_SECURE === 'true',
+        maxAge: 1000 * 60 * 60 * 24
+    }
+}));
 
 /**
  * Global Middleware
