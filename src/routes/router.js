@@ -3,6 +3,7 @@ import railRoutesRouter from './routes.js';
 import { Router } from 'express';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import { loginUser, logoutUser, registerUser } from '../controllers/auth.js';
+import { tripsApi, tripsPage } from '../controllers/trips.js';
 import { requirePageRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -21,6 +22,10 @@ router.get('/', homePage);
 
 // About page
 router.get('/about', aboutPage);
+
+// Trips API and paginated list page
+router.get('/api/trips', tripsApi);
+router.get('/trips', tripsPage);
 
 // Rail routes
 router.use('/routes', railRoutesRouter);

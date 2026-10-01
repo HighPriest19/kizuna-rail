@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: Kizuna Rail API
+  version: 1.0.0
+paths:
+  /api/trips:
+    get:
+      summary: List trips using pagination
+      parameters:
+        - name: page
+          in: query
+          description: One-based page number.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of trips per page; maximum 100.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: A page of trips and pagination metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - trips
+                  - metadata
+                properties:
+                  trips:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                  metadata:
+                    type: object
+                    required:
+                      - totalItems
+                      - currentPage
+                      - totalPages
+                      - itemsPerPage
+                    properties:
+                      totalItems:
+                        type: integer
+                      currentPage:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      itemsPerPage:
+                        type: integer
+        '400':
+          description: Invalid pagination parameter.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                  - details
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - parameter
+                        - message
+                      properties:
+                        parameter:
+                          type: string
+                        message:
+                          type: string

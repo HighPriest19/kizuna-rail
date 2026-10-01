@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<h1><%- title %></h1>
+
+<section aria-label="Trip results">
+    <p id="trip-results-status" role="status" aria-live="polite">Loading trips...</p>
+    <div id="trip-list" class="routes-grid"></div>
+    <p id="trip-list-error" role="alert" hidden></p>
+
+    <nav class="trip-pagination" aria-label="Trip result pages">
+        <button id="trip-previous" type="button" aria-label="Previous page" disabled>Previous</button>
+        <span id="trip-page-status" aria-live="polite">Page 1</span>
+        <button id="trip-next" type="button" aria-label="Next page" disabled>Next</button>
+    </nav>
+</section>
+
+<script src="/js/trips.js" defer></script>
+<%- include('../partials/footer') %>
