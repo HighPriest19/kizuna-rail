@@ -1,5 +1,5 @@
 import { createConfirmation, getScheduleById, getTicketOptionsForRoute } from '../models/model.js';
-
+//comment
 const bookingPage = async (req, res) => {
     const { scheduleId } = req.params;
 
