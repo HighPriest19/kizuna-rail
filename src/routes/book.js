@@ -16,7 +16,7 @@ const bookingPage = async (req, res) => {
 
 const processBookingRequest = async (req, res) => {
     const data = req.body;
-
+    //comment
     const confirmationNum = await createConfirmation(data);
 
     res.redirect(`/routes/confirmation/${confirmationNum}`);
