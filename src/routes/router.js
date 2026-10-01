@@ -1,12 +1,18 @@
 import challengeScenariosRouter from './scenarios.js';
 import railRoutesRouter from './routes.js';
 import { Router } from 'express';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import { fileURLToPath } from 'node:url';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import { loginUser, logoutUser, registerUser } from '../controllers/auth.js';
 import { tripsApi, tripsPage } from '../controllers/trips.js';
 import { requirePageRole } from '../middleware/auth.js';
 
 const router = Router();
+const swaggerDocument = YAML.load(fileURLToPath(new URL('../../docs/openapi.yaml', import.meta.url)));
+
+router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 router.get('/register', (req, res) => res.render('register', { title: 'Register' }));
 router.post('/register', registerUser);

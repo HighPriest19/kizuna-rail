@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsStatus.textContent = 'Loading trips...';
 
         try {
-            const params = new URLSearchParams({ page: String(page), limit: '10' });
+            const params = new URLSearchParams({ page: String(page), limit: '2' });
             if (regionSelect.value) params.set('region', regionSelect.value);
             if (seasonSelect.value) params.set('season', seasonSelect.value);
             if (keywordInput.value.trim()) params.set('keyword', keywordInput.value.trim());
