@@ -69,7 +69,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('trip-list-error');
     const previousButton = document.getElementById('trip-previous');
     const nextButton = document.getElementById('trip-next');
+    const filtersForm = document.getElementById('trip-filters');
+    const regionSelect = document.getElementById('region-filter');
+    const seasonSelect = document.getElementById('season-filter');
+    const keywordInput = document.getElementById('trip-keyword');
     let currentPage = 1;
+
+    const updateFilterUrl = () => {
+        const url = new URL(window.location.href);
+        for (const [name, value] of [
+            ['region', regionSelect.value],
+            ['season', seasonSelect.value],
+            ['keyword', keywordInput.value.trim()]
+        ]) {
+            if (value) {
+                url.searchParams.set(name, value);
+            } else {
+                url.searchParams.delete(name);
+            }
+        }
+        window.history.replaceState({}, '', url);
+    };
 
     const loadPage = async (page) => {
         previousButton.disabled = true;
@@ -78,7 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsStatus.textContent = 'Loading trips...';
 
         try {
-            const response = await fetch(`/api/trips?page=${page}&limit=10`);
+            const params = new URLSearchParams({ page: String(page), limit: '10' });
+            if (regionSelect.value) params.set('region', regionSelect.value);
+            if (seasonSelect.value) params.set('season', seasonSelect.value);
+            if (keywordInput.value.trim()) params.set('keyword', keywordInput.value.trim());
+
+            const response = await fetch(`/api/trips?${params}`);
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Unable to load trips.');
 
@@ -96,6 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    filtersForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        updateFilterUrl();
+        loadPage(1);
+    });
+    regionSelect.addEventListener('change', () => {
+        updateFilterUrl();
+        loadPage(1);
+    });
+    seasonSelect.addEventListener('change', () => {
+        updateFilterUrl();
+        loadPage(1);
+    });
     previousButton.addEventListener('click', () => loadPage(currentPage - 1));
     nextButton.addEventListener('click', () => loadPage(currentPage + 1));
     loadPage(1);

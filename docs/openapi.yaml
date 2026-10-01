@@ -5,8 +5,37 @@ info:
 paths:
   /api/trips:
     get:
-      summary: List trips using pagination
+      summary: List trips with pagination, filters, and keyword search
       parameters:
+        - name: region
+          in: query
+          description: Filter by a trip region.
+          required: false
+          schema:
+            type: string
+            enum:
+              - central
+              - northern
+              - kansai
+              - hokkaido
+        - name: season
+          in: query
+          description: Filter by the trip's best season.
+          required: false
+          schema:
+            type: string
+            enum:
+              - spring
+              - summer
+              - autumn
+              - winter
+        - name: keyword
+          in: query
+          description: Case-insensitive substring search in trip names and descriptions.
+          required: false
+          schema:
+            type: string
+            maxLength: 100
         - name: page
           in: query
           description: One-based page number.
@@ -47,6 +76,7 @@ paths:
                       - currentPage
                       - totalPages
                       - itemsPerPage
+                      - filters
                     properties:
                       totalItems:
                         type: integer
@@ -56,8 +86,24 @@ paths:
                         type: integer
                       itemsPerPage:
                         type: integer
+                      filters:
+                        type: object
+                        required:
+                          - region
+                          - season
+                          - keyword
+                        properties:
+                          region:
+                            type: string
+                            nullable: true
+                          season:
+                            type: string
+                            nullable: true
+                          keyword:
+                            type: string
+                            nullable: true
         '400':
-          description: Invalid pagination parameter.
+          description: Invalid pagination or filter parameter.
           content:
             application/json:
               schema:

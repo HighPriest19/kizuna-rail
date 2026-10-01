@@ -1,6 +1,28 @@
 <%- include('../partials/header') %>
 <h1><%- title %></h1>
 
+<form id="trip-filters" class="trip-filters" role="search">
+    <label for="region-filter">Region</label>
+    <select id="region-filter" name="region">
+        <option value="">All regions</option>
+        <% regions.forEach((region) => { %>
+            <option value="<%= region %>" <%= selectedRegion === region ? 'selected' : '' %>><%= region.charAt(0).toUpperCase() + region.slice(1) %></option>
+        <% }); %>
+    </select>
+
+    <label for="season-filter">Season</label>
+    <select id="season-filter" name="season">
+        <option value="">All seasons</option>
+        <% seasons.forEach((season) => { %>
+            <option value="<%= season %>" <%= selectedSeason === season ? 'selected' : '' %>><%= season.charAt(0).toUpperCase() + season.slice(1) %></option>
+        <% }); %>
+    </select>
+
+    <label for="trip-keyword">Keyword</label>
+    <input id="trip-keyword" name="keyword" type="search" maxlength="100" value="<%= keyword %>" placeholder="Trip name or description">
+    <button type="submit">Search</button>
+</form>
+
 <section aria-label="Trip results">
     <p id="trip-results-status" role="status" aria-live="polite">Loading trips...</p>
     <div id="trip-list" class="routes-grid"></div>
