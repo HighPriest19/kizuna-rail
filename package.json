@@ -12,6 +12,7 @@
 	},
 	"scripts": {
 		"dev": "nodemon --env-file=.env server.js",
+		"test": "vitest run",
 		"reset": "node restore.js 3000 3001",
 		"start": "node server.js"
 	},
@@ -19,6 +20,8 @@
 	"version": "1.0.0",
 	"devDependencies": {
 		"nodemon": "^3.1.10",
+		"supertest": "^7.3.1",
+		"vitest": "^5.0.3",
 		"ws": "^8.18.3"
 	}
 }

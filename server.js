@@ -1,30 +1,16 @@
-import express from 'express';
-import session from 'express-session';
 import mongoose from 'mongoose';
-import { randomBytes } from 'crypto';
 import 'dotenv/config';
-import globalMiddleware from './src/middleware/global.js';
+import app from './src/app.js';
 import Path from 'path';
-import routes from './src/routes/router.js';
-import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import { initializeDatabase } from './src/models/db-in-file.js';
 import { seedRoles } from './src/models/roles.js';
 
-/**
- * Declare Important Variables
- */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = Path.dirname(__filename);
+const __dirname = Path.dirname(fileURLToPath(import.meta.url));
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
 const DATABASE_FILE = Path.join(__dirname, 'src/models/db-in-file.json');
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
-const SESSION_SECRET = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
-
-if (!process.env.SESSION_SECRET) {
-    console.warn('SESSION_SECRET is unset; sessions will be invalidated when the server restarts.');
-}
 
 if (MONGODB_URI) {
     mongoose.connect(MONGODB_URI)
@@ -38,92 +24,8 @@ if (MONGODB_URI) {
     console.error('Missing MONGODB_URI in .env file; authentication requires MongoDB.');
 }
 
-/**
- * Setup Express Server
- */
-const app = express();
-
-/**
- * Configure Express middleware
- */
-
-// Setup file-based database
 initializeDatabase(DATABASE_FILE);
 
-// Add version info to res.locals for access in templates
-app.use((req, res, next) => {
-    res.locals.appVersion = pkg.version;
-    next();
-});
-
-// Serve static files from the public directory
-app.use(express.static(Path.join(__dirname, 'public')));
-
-// Set EJS as the templating engine
-app.set('view engine', 'ejs');
-
-// Tell Express where to find your templates
-app.set('views', Path.join(__dirname, 'src/views'));
-
-// Parse JSON and URL-encoded request bodies (for processing POST data)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(session({
-    name: 'connect.sid',
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.SESSION_COOKIE_SECURE === 'true',
-        maxAge: 1000 * 60 * 60 * 24
-    }
-}));
-
-/**
- * Global Middleware
- */
-
-app.use(globalMiddleware);
-
-/**
- * Routes
- */
-
-app.use('/', routes);
-
-/**
- * Error Handling
- */
-
-// Catch-all route for 404 errors
-app.use((req, res, next) => {
-    const err = new Error('Page Not Found');
-    err.status = 404;
-    next(err);
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-    // Determine status and template
-    const status = err.status || 500;
-    const template = status === 404 ? '404' : '500';
-
-    // Prepare data for the template
-    const context = {
-        title: status === 404 ? 'Page Not Found' : 'Server Error',
-        error: err.message,
-        stack: err.stack
-    };
-
-    // Render the appropriate error template
-    res.status(status).render(`errors/${template}`, context);
-});
-
-/**
- * Start WebSocket Server in Development Mode; used for live reloading
- */
 if (NODE_ENV.includes('dev')) {
     const ws = await import('ws');
 
@@ -143,9 +45,6 @@ if (NODE_ENV.includes('dev')) {
     }
 }
 
-/**
- * Start Server
- */
 app.listen(PORT, async () => {
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

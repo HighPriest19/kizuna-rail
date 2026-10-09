@@ -1,6 +1,33 @@
 import { getAllRoutes, getListOfRegions, getListOfSeasons } from '../models/model.js';
+import Trip from '../models/Trip.js';
 
 const MAX_ITEMS_PER_PAGE = 100;
+const TRIP_FIELDS = [
+    'name',
+    'description',
+    'region',
+    'startStation',
+    'endStation',
+    'duration',
+    'distance',
+    'highlights',
+    'bestSeason',
+    'operatingMonths',
+    'imageUrl'
+];
+
+const getTripFields = (body) => Object.fromEntries(
+    TRIP_FIELDS
+        .filter(field => Object.hasOwn(body ?? {}, field))
+        .map(field => [field, body[field]])
+);
+
+const handleTripWriteError = (error, res, next) => {
+    if (error.name === 'ValidationError' || error.name === 'CastError') {
+        return res.status(400).json({ error: error.message });
+    }
+    return next(error);
+};
 
 const parsePositiveInteger = (value, parameter, defaultValue, maximum = Number.MAX_SAFE_INTEGER) => {
     if (value === undefined) {
@@ -86,7 +113,7 @@ export const tripsApi = async (req, res) => {
     const allTrips = await getAllRoutes();
     const regionResult = parseChoiceFilter(req.query.region, 'region', [...new Set(allTrips.map(trip => trip.region))]);
     const seasonResult = parseChoiceFilter(req.query.season, 'season', [...new Set(allTrips.map(trip => trip.bestSeason))]);
-    const keywordResult = parseKeywordFilter(req.query.keyword);
+    const keywordResult = parseKeywordFilter(req.query.search ?? req.query.keyword);
 
     for (const [parameter, result] of [
         ['region', regionResult],
@@ -130,4 +157,41 @@ export const tripsApi = async (req, res) => {
             filters: { region, season, keyword }
         }
     });
+};
+
+export const createTrip = async (req, res, next) => {
+    try {
+        const trip = await Trip.create(getTripFields(req.body));
+        return res.status(201).json({ trip });
+    } catch (error) {
+        return handleTripWriteError(error, res, next);
+    }
+};
+
+export const updateTrip = async (req, res, next) => {
+    try {
+        const trip = await Trip.findByIdAndUpdate(
+            req.params.id,
+            { $set: getTripFields(req.body) },
+            { new: true, runValidators: true }
+        );
+        if (!trip) {
+            return res.status(404).json({ error: 'Trip not found.' });
+        }
+        return res.status(200).json({ trip });
+    } catch (error) {
+        return handleTripWriteError(error, res, next);
+    }
+};
+
+export const deleteTrip = async (req, res, next) => {
+    try {
+        const trip = await Trip.findByIdAndDelete(req.params.id);
+        if (!trip) {
+            return res.status(404).json({ error: 'Trip not found.' });
+        }
+        return res.status(204).end();
+    } catch (error) {
+        return handleTripWriteError(error, res, next);
+    }
 };

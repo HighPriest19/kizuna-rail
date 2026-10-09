@@ -6,8 +6,8 @@ import YAML from 'yamljs';
 import { fileURLToPath } from 'node:url';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import { loginUser, logoutUser, registerUser } from '../controllers/auth.js';
-import { tripsApi, tripsPage } from '../controllers/trips.js';
-import { requirePageRole } from '../middleware/auth.js';
+import { createTrip, deleteTrip, tripsApi, tripsPage, updateTrip } from '../controllers/trips.js';
+import { requireApiRole, requirePageRole } from '../middleware/auth.js';
 
 const router = Router();
 const swaggerDocument = YAML.load(fileURLToPath(new URL('../../docs/openapi.yaml', import.meta.url)));
@@ -31,6 +31,9 @@ router.get('/about', aboutPage);
 
 // Trips API and paginated list page
 router.get('/api/trips', tripsApi);
+router.post('/api/trips', requireApiRole('admin'), createTrip);
+router.put('/api/trips/:id', requireApiRole('admin'), updateTrip);
+router.delete('/api/trips/:id', requireApiRole('admin'), deleteTrip);
 router.get('/trips', tripsPage);
 
 // Rail routes
