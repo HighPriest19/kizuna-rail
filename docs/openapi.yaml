@@ -126,3 +126,37 @@ paths:
                           type: string
                         message:
                           type: string
+  /api/trips/{id}:
+    get:
+      summary: Get a trip by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of a seeded trip.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested trip.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - trip
+                properties:
+                  trip:
+                    type: object
+                    additionalProperties: true
+        '404':
+          description: Trip not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string

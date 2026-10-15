@@ -1,4 +1,4 @@
-import { getAllRoutes, getListOfRegions, getListOfSeasons } from '../models/model.js';
+import { getAllRoutes, getListOfRegions, getListOfSeasons, getRouteById } from '../models/model.js';
 import Trip from '../models/Trip.js';
 
 const MAX_ITEMS_PER_PAGE = 100;
@@ -157,6 +157,14 @@ export const tripsApi = async (req, res) => {
             filters: { region, season, keyword }
         }
     });
+};
+
+export const getTripApi = async (req, res) => {
+    const trip = await getRouteById(req.params.id);
+    if (!trip) {
+        return res.status(404).json({ error: 'Trip not found.' });
+    }
+    return res.status(200).json({ trip });
 };
 
 export const createTrip = async (req, res, next) => {

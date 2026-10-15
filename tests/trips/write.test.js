@@ -1,7 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app.js';
 import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { User } from '../../src/models/User.js';
 import Trip from '../../src/models/Trip.js';
 
@@ -11,14 +13,6 @@ vi.mock('bcrypt', () => ({
 
 vi.mock('../../src/models/User.js', () => ({
     User: { findOne: vi.fn() }
-}));
-
-vi.mock('../../src/models/Trip.js', () => ({
-    default: {
-        create: vi.fn(),
-        findByIdAndUpdate: vi.fn(),
-        findByIdAndDelete: vi.fn()
-    }
 }));
 
 const trip = {
@@ -34,6 +28,18 @@ const trip = {
     bestSeason: 'summer',
     operatingMonths: [6, 7, 8]
 };
+
+let mongoServer;
+
+beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri(), { dbName: 'kizuna-rail-write-tests' });
+});
+
+afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+});
 
 const loginAs = async (role) => {
     const agent = request.agent(app);
@@ -61,17 +67,14 @@ const loginAs = async (role) => {
 };
 
 describe('Trip write endpoints', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         User.findOne.mockReset();
         bcrypt.compare.mockReset();
-        Trip.create.mockReset();
-        Trip.findByIdAndUpdate.mockReset();
-        Trip.findByIdAndDelete.mockReset();
+        await Trip.deleteMany({});
     });
 
     it('creates a trip for an authenticated admin', async () => {
         const admin = await loginAs('admin');
-        Trip.create.mockResolvedValue(trip);
 
         const response = await admin
             .post('/api/trips')
@@ -79,41 +82,41 @@ describe('Trip write endpoints', () => {
 
         expect(response.status).toBe(201);
         expect(response.body.trip).toMatchObject({ name: trip.name, region: trip.region });
-        expect(Trip.create).toHaveBeenCalledWith(expect.not.objectContaining({ ignored: 'not persisted' }));
+        const storedTrip = await Trip.findById(response.body.trip._id);
+        expect(storedTrip).toMatchObject({ name: trip.name, region: trip.region });
+        expect(storedTrip.toObject()).not.toHaveProperty('ignored');
     });
 
     it('updates a trip for an authenticated admin', async () => {
         const admin = await loginAs('admin');
-        const updatedTrip = { ...trip, name: 'Updated Coastal Breeze' };
-        Trip.findByIdAndUpdate.mockResolvedValue(updatedTrip);
+        const seededTrip = await Trip.create({ ...trip });
+        const updatedName = 'Updated Coastal Breeze';
 
         const response = await admin
-            .put(`/api/trips/${trip._id}`)
-            .send({ name: updatedTrip.name });
+            .put(`/api/trips/${seededTrip._id}`)
+            .send({ name: updatedName });
 
         expect(response.status).toBe(200);
-        expect(response.body.trip.name).toBe(updatedTrip.name);
-        expect(Trip.findByIdAndUpdate).toHaveBeenCalledWith(
-            trip._id,
-            { $set: { name: updatedTrip.name } },
-            { new: true, runValidators: true }
-        );
+        expect(response.body.trip.name).toBe(updatedName);
+        const storedTrip = await Trip.findById(seededTrip._id);
+        expect(storedTrip).toMatchObject({ name: updatedName });
     });
 
     it('deletes a trip for an authenticated admin', async () => {
         const admin = await loginAs('admin');
-        Trip.findByIdAndDelete.mockResolvedValue(trip);
+        const seededTrip = await Trip.create({ ...trip });
 
-        const response = await admin.delete(`/api/trips/${trip._id}`);
+        const response = await admin.delete(`/api/trips/${seededTrip._id}`);
 
         expect(response.status).toBe(204);
-        expect(Trip.findByIdAndDelete).toHaveBeenCalledWith(trip._id);
+        expect(await Trip.findById(seededTrip._id)).toBeNull();
     });
 
     it('rejects write requests without an authenticated session', async () => {
         const response = await request(app).post('/api/trips').send(trip);
 
         expect(response.status).toBe(401);
+        expect(await Trip.findById(trip._id)).toBeNull();
     });
 
     it('rejects write requests from a non-admin user', async () => {
@@ -121,5 +124,6 @@ describe('Trip write endpoints', () => {
         const response = await user.post('/api/trips').send(trip);
 
         expect(response.status).toBe(403);
+        expect(await Trip.findById(trip._id)).toBeNull();
     });
 });

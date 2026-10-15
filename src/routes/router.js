@@ -6,7 +6,7 @@ import YAML from 'yamljs';
 import { fileURLToPath } from 'node:url';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import { loginUser, logoutUser, registerUser } from '../controllers/auth.js';
-import { createTrip, deleteTrip, tripsApi, tripsPage, updateTrip } from '../controllers/trips.js';
+import { createTrip, deleteTrip, getTripApi, tripsApi, tripsPage, updateTrip } from '../controllers/trips.js';
 import { requireApiRole, requirePageRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -31,6 +31,7 @@ router.get('/about', aboutPage);
 
 // Trips API and paginated list page
 router.get('/api/trips', tripsApi);
+router.get('/api/trips/:id', getTripApi);
 router.post('/api/trips', requireApiRole('admin'), createTrip);
 router.put('/api/trips/:id', requireApiRole('admin'), updateTrip);
 router.delete('/api/trips/:id', requireApiRole('admin'), deleteTrip);
