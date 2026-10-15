@@ -8,6 +8,9 @@ const setLocalVariables = (req, res, next) => {
     // Make any query parameters available to all templates
     res.locals.query = req.query;
 
+    // Make the authenticated user available to shared views
+    res.locals.user = req.session?.user;
+
     next();
 };
 

@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { User } from '../models/users.js';
+import { User } from '../models/User.js';
 import { Role } from '../models/roles.js';
 
 const sessionUser = (user, role) => ({
@@ -10,6 +10,15 @@ const sessionUser = (user, role) => ({
 });
 
 const prefersHtml = (req) => req.accepts('html');
+const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.SESSION_COOKIE_SECURE === 'true'
+};
+
+function clearSessionCookie(res) {
+  res.clearCookie('connect.sid', sessionCookieOptions);
+}
 
 function regenerateSession(req, user) {
   return new Promise((resolve, reject) => {
@@ -48,7 +57,7 @@ export async function registerUser(req, res, next) {
     const user = await User.create({
       username,
       email,
-      password: await bcrypt.hash(password, 12),
+      passwordHash: await bcrypt.hash(password, 12),
       displayName: displayName || undefined,
       role: role._id
     });
@@ -73,8 +82,8 @@ export async function loginUser(req, res, next) {
       return renderAuthError(req, res, 'login', 'Login', 'Username and password are required.');
     }
 
-    const user = await User.findOne({ username }).populate('role');
-    const isValid = user && user.role && await bcrypt.compare(password, user.password);
+    const user = await User.findOne({ username }).select('+passwordHash').populate('role');
+    const isValid = user && user.role && await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return renderAuthError(req, res, 'login', 'Login', 'Invalid username or password.', 401);
     }
@@ -90,13 +99,14 @@ export async function loginUser(req, res, next) {
 
 export function logoutUser(req, res, next) {
   if (!req.session) {
+    clearSessionCookie(res);
     if (prefersHtml(req)) return res.redirect('/login');
     return res.status(200).json({ message: 'Logged out successfully' });
   }
 
   req.session.destroy((error) => {
     if (error) return next(error);
-    res.clearCookie('connect.sid', { httpOnly: true, sameSite: 'lax' });
+    clearSessionCookie(res);
     if (prefersHtml(req)) return res.redirect('/login');
     return res.status(200).json({ message: 'Logged out successfully' });
   });

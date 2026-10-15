@@ -13,6 +13,7 @@
 	"scripts": {
 		"dev": "nodemon --env-file=.env server.js",
 		"test": "vitest run",
+		"seed:roles": "node scripts/seed-roles.js",
 		"reset": "node restore.js 3000 3001",
 		"start": "node server.js"
 	},

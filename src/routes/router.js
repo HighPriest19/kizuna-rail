@@ -20,7 +20,7 @@ router.get('/login', (req, res) => res.render('login', { title: 'Login' }));
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.get('/admin', requirePageRole('admin'), (req, res) => {
-	res.render('admin', { title: 'Admin Dashboard', user: req.session.user });
+	res.render('admin/dashboard', { title: 'Admin Dashboard', user: req.session.user });
 });
 
 // Home page

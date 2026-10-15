@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app.js';
 import bcrypt from 'bcrypt';
-import { User } from '../../src/models/users.js';
+import { User } from '../../src/models/User.js';
 import Trip from '../../src/models/Trip.js';
 
 vi.mock('bcrypt', () => ({
     default: { compare: vi.fn() }
 }));
 
-vi.mock('../../src/models/users.js', () => ({
+vi.mock('../../src/models/User.js', () => ({
     User: { findOne: vi.fn() }
 }));
 
@@ -41,12 +41,14 @@ const loginAs = async (role) => {
         _id: '507f1f77bcf86cd799439012',
         username: role,
         email: `${role}@example.com`,
-        password: 'hashed-password',
+        passwordHash: 'hashed-password',
         role: { name: role }
     };
-    User.findOne.mockReturnValue({
+    const query = {
+        select: vi.fn().mockReturnThis(),
         populate: vi.fn().mockResolvedValue(user)
-    });
+    };
+    User.findOne.mockReturnValue(query);
     bcrypt.compare.mockResolvedValue(true);
 
     const response = await agent
